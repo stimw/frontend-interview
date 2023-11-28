@@ -17,4 +17,4 @@ function myFn(name, age) {
   return this.value;
 }
 
-console.log('value:', myFn.bind(foo, 'travis')(18));
+console.log('value:', myFn.myBind(foo, 'travis')(18));

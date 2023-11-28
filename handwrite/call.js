@@ -4,7 +4,7 @@ Function.prototype.myCall = function (context) {
 
   ctx[fnSymbol] = this;
 
-  const args = [...arguments].slice(1);
+  const args = [...arguments].slice(1); // or Array.prototype.slice.call(arguments, 1)
   const result = ctx[fnSymbol](...args);
   delete ctx[fnSymbol];
 
@@ -29,9 +29,9 @@ const foo = {
 };
 
 function myFn(name) {
-  console.log("name:", name);
+  console.log('name:', name);
   return this.value;
 }
 
-console.log("value:", myFn.myCall(foo, 'travis'));
-console.log("value:", myFn.myApply(foo, ['travis']));
+console.log('value:', myFn.myCall(foo, 'travis'));
+console.log('value:', myFn.myApply(foo, ['travis']));

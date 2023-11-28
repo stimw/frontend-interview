@@ -44,7 +44,7 @@ const ajax = (option) => {
     }
   };
 
-  // 4. check timeout
+  // 4. Check timeout
   if (option.timeout) {
     timer = setTimeout(function () {
       clearTimeout(timer);

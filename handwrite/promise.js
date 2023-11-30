@@ -1,7 +1,7 @@
 // Overview:
 // 1. Implement `resolve` and `reject`
 // 2. The state is immutable
-// 3. Deal with throw
+// 3. Deal with throw: try, catch
 // 4. Implement `then`
 //    - a) onFulfilled, onRejected
 //    - b) timer => execute callbacks later
@@ -54,12 +54,14 @@ class MyPromise {
 
   then(onFulfilled, onRejected) {
     // Check the type
-    typeof onFulfilled === 'function' ? onFulfilled : (value) => value;
-    typeof onRejected === 'function'
-      ? onRejected
-      : (reason) => {
-          throw reason;
-        };
+    onFulfilled =
+      typeof onFulfilled === 'function' ? onFulfilled : (value) => value;
+    onRejected =
+      typeof onRejected === 'function'
+        ? onRejected
+        : (reason) => {
+            throw reason;
+          };
 
     // Should declare first so that `result === thenPromise` can access
     let thenPromise;
@@ -71,7 +73,6 @@ class MyPromise {
         setTimeout(() => {
           // the `callback` here is either onFulfilled or onRejected written by user
           try {
-            // console.log(this)
             // the `result` here is either a value or a promise
             const result = callback(this.PromiseResult);
             // `result` can't be itself, otherwise it will cause an infinite loop.
@@ -118,15 +119,43 @@ class MyPromise {
   }
 }
 
+MyPromise.all = function (promises) {
+  if (!Array.isArray(promises)) {
+    throw new Error('invalid arguments');
+  }
+
+  const result = [];
+  let count = 0;
+  return new MyPromise((resolve, reject) => {
+    const addData = (index, value) => {
+      result[index] = value;
+      count++;
+      if (count === promises.length) resolve(result);
+    };
+    promises.forEach((promise, index) => {
+      if (promise instanceof MyPromise) {
+        promise.then(
+          (res) => {
+            addData(index, res);
+          },
+          (err) => reject(err)
+        );
+      } else {
+        addData(index, promise);
+      }
+    });
+  });
+};
+
 // Test
-// const test1 = new MyPromise((resolve, reject) => {
-//   resolve('success');
-// });
+const test1 = new MyPromise((resolve, reject) => {
+  resolve('success');
+});
 // console.log('test1', test1); // MyPromise { PromiseState: 'fulfilled', PromiseResult: 'success' }
 
-// const test2 = new MyPromise((resolve, reject) => {
-//   reject('fail');
-// });
+const test2 = new MyPromise((resolve, reject) => {
+  reject('fail');
+});
 // console.log('test2', test2); // MyPromise { PromiseState: 'rejected', PromiseResult: 'fail' }
 
 // const test3 = new MyPromise(() => {
@@ -143,26 +172,29 @@ class MyPromise {
 //   (err) => console.log('test4', err)
 // );
 
-const test5 = new MyPromise((resolve, reject) => {
-  resolve(100);
-})
-  .then(
-    (res) => 2 * res,
-    (err) => 3 * err
-  )
-  .then(
-    (res) => console.log('success', res),
-    (err) => console.log('fail', err)
-  );
+// const test5 = new MyPromise((resolve, reject) => {
+//   resolve(100);
+// })
+//   .then(
+//     (res) => 2 * res,
+//     (err) => 3 * err
+//   )
+//   .then(
+//     (res) => console.log('success', res),
+//     (err) => console.log('fail', err)
+//   );
 
-const test6 = new MyPromise((resolve, reject) => {
-  resolve(100);
-})
-  .then(
-    (res) => new MyPromise((resolve, reject) => reject(2 * res)),
-    (err) => new Promise((resolve, reject) => resolve(3 * err))
-  )
-  .then(
-    (res) => console.log('success', res),
-    (err) => console.log('fail', err)
-  );
+// const test6 = new MyPromise((resolve, reject) => {
+//   reject(100);
+// })
+//   .then(
+//     (res) => new MyPromise((resolve, reject) => reject(2 * res)),
+//     (err) => new MyPromise((resolve, reject) => resolve(3 * err))
+//   )
+//   .then(
+//     (res) => console.log('success', res),
+//     (err) => console.log('fail', err)
+//   );
+
+const testPromiseAll = MyPromise.all([test1, test2]);
+testPromiseAll.then(console.log);

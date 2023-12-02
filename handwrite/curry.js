@@ -8,10 +8,7 @@ function curry(func) {
       // but use apply is the best practice
     }
 
-    return function (...args2) {
-      return curried.apply(this, args.concat(args2));
-      // return curried(...args, ...args2);
-    };
+    return curried.bind(this, ...args);
   };
 }
 

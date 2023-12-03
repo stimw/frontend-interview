@@ -1,9 +1,19 @@
 Function.prototype.myBind = function (context, ...args) {
   const self = this;
 
-  return function (...bindArgs) {
-    return self.apply(context, [...args, ...bindArgs]);
+  const fNOP = function () {};
+
+  const fBound = function (...bindArgs) {
+    return self.apply(this instanceof fBound ? this : context, [
+      ...args,
+      ...bindArgs,
+    ]);
   };
+
+  fNOP.prototype = this.prototype;
+  fBound.prototype = fNOP.prototype;
+
+  return fBound;
 };
 
 // Test
